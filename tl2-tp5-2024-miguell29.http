@@ -1,0 +1,6 @@
+@tl2_tp5_2024_miguell29_HostAddress = http://localhost:5201
+
+GET {{tl2_tp5_2024_miguell29_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
