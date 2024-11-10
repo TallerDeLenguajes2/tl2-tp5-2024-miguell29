@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using tl2_tp5_2024_miguell29.Models;
 
@@ -10,7 +6,40 @@ namespace tl2_tp5_2024_miguell29.Repository
     public class ProductoRepository : IProductoRepository
     {
         private string _stringConnection = @"Data Source=db\Tienda.db;Cache=Shared";
-        public List<Producto> GetProductos()
+
+        
+
+        public void NewProduct(Producto producto)
+        {
+            string query = @"INSERT INTO Productos (Descripcion, Precios)
+                            VALUES (@descripcion, @precio)";
+            using (SqliteConnection connection = new SqliteConnection(_stringConnection))
+            {
+                SqliteCommand command = new SqliteCommand(query,connection);
+                command.Parameters.AddWithValue("@descripcion",producto.Descripcion);
+                command.Parameters.AddWithValue("@precio",producto.Precio);
+                command.ExecuteNonQuery();
+                connection.Close();
+            }
+        }
+
+        public void UpdateProduct(int id, Producto producto)
+        {
+            string query = @"UPDATE Poductos SET
+                            Descripcion = @descripcion,
+                            Precio = @precio
+                            WHERE idProducto = @id";
+            using (SqliteConnection connection = new SqliteConnection(_stringConnection))
+            {
+                SqliteCommand command = new SqliteCommand(query,connection);
+                command.Parameters.AddWithValue("@descripcion",producto.Descripcion);
+                command.Parameters.AddWithValue("@precio",producto.Precio);
+                command.Parameters.AddWithValue("@id",id);
+                command.ExecuteNonQuery();
+                connection.Close();
+            }
+        }
+        public List<Producto> GetProducts()
         {
             var list = new List<Producto>();
             string query = "SELECT idProducto, Descripcion, Precio FROM Productos";
@@ -36,5 +65,39 @@ namespace tl2_tp5_2024_miguell29.Repository
             
             return list;
         }
+
+        public Producto GetProductById(int id)
+        {
+            Producto producto = new Producto();
+            string query = @"SELECT idProducto, Descipcion, Precio 
+                            FROM Productos 
+                            WHERE idProducto = @id";
+            using (SqliteConnection connection = new SqliteConnection(_stringConnection))
+            {
+                SqliteCommand command = new SqliteCommand(query,connection);
+                command.Parameters.AddWithValue("@id", id);
+                SqliteDataReader reader = command.ExecuteReader();
+                if (reader.Read())
+                {
+                    producto.Id = Convert.ToInt32(reader["idProducto"]);
+                    producto.Descripcion = reader["Descripcion"].ToString();
+                    producto.Precio = Convert.ToInt32(reader["Precio"]);
+                }
+                connection.Close();
+            }
+            return producto;
+        }
+        public void DeleteProduct(int id)
+        {
+            string query = @"DELETE FROM Productos WHERE idProducto = @id";
+            using (SqliteConnection connection = new SqliteConnection(_stringConnection))
+            {
+                SqliteCommand command = new SqliteCommand(query, connection);
+                command.Parameters.AddWithValue("@id",id);
+                command.ExecuteNonQuery();
+                connection.Close();
+            }
+        }
+
     }
 }

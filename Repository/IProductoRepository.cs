@@ -9,6 +9,11 @@ namespace tl2_tp5_2024_miguell29.Repository
 {
     public interface IProductoRepository
     {
-        public List<Producto> GetProductos();
+        public void NewProduct(Producto producto);
+        public void UpdateProduct(int id, Producto producto);
+        public List<Producto> GetProducts();
+        public Producto GetProductById(int id);
+        public void DeleteProduct(int id);
     }
+
 }

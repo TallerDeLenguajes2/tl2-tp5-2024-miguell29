@@ -17,10 +17,14 @@ namespace tl2_tp5_2024_miguell29.Controllers
         {
             _productoRepository = new ProductoRepository();
         }
+
+
+
+
         [HttpGet]
         public ActionResult<List<Producto>> GetProductos()
         {
-            var productos = _productoRepository.GetProductos();
+            var productos = _productoRepository.GetProducts();
             return Ok(productos);
         }
     }
