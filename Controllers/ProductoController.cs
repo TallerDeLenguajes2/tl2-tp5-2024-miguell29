@@ -22,10 +22,22 @@ namespace tl2_tp5_2024_miguell29.Controllers
 
 
         [HttpGet]
-        public ActionResult<List<Producto>> GetProductos()
+        public ActionResult<List<Producto>> GetProducts()
         {
             var productos = _productoRepository.GetProducts();
             return Ok(productos);
+        }
+        [HttpPost]
+        public ActionResult CreateProduct(Producto producto)
+        {
+            _productoRepository.NewProduct(producto);
+            return Ok();
+        }
+        [HttpPut("{id}")]
+        public ActionResult UpdateProduct(int id,[FromBody] Producto producto)
+        {
+            _productoRepository.UpdateProduct(id, producto);
+            return Ok();
         }
     }
 }

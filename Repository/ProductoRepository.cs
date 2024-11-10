@@ -11,13 +11,14 @@ namespace tl2_tp5_2024_miguell29.Repository
 
         public void NewProduct(Producto producto)
         {
-            string query = @"INSERT INTO Productos (Descripcion, Precios)
+            string query = @"INSERT INTO Productos (Descripcion, Precio)
                             VALUES (@descripcion, @precio)";
             using (SqliteConnection connection = new SqliteConnection(_stringConnection))
             {
                 SqliteCommand command = new SqliteCommand(query,connection);
                 command.Parameters.AddWithValue("@descripcion",producto.Descripcion);
                 command.Parameters.AddWithValue("@precio",producto.Precio);
+                connection.Open();
                 command.ExecuteNonQuery();
                 connection.Close();
             }
@@ -25,7 +26,7 @@ namespace tl2_tp5_2024_miguell29.Repository
 
         public void UpdateProduct(int id, Producto producto)
         {
-            string query = @"UPDATE Poductos SET
+            string query = @"UPDATE Productos SET
                             Descripcion = @descripcion,
                             Precio = @precio
                             WHERE idProducto = @id";
@@ -35,6 +36,7 @@ namespace tl2_tp5_2024_miguell29.Repository
                 command.Parameters.AddWithValue("@descripcion",producto.Descripcion);
                 command.Parameters.AddWithValue("@precio",producto.Precio);
                 command.Parameters.AddWithValue("@id",id);
+                connection.Open();
                 command.ExecuteNonQuery();
                 connection.Close();
             }
@@ -76,6 +78,7 @@ namespace tl2_tp5_2024_miguell29.Repository
             {
                 SqliteCommand command = new SqliteCommand(query,connection);
                 command.Parameters.AddWithValue("@id", id);
+                connection.Open();
                 SqliteDataReader reader = command.ExecuteReader();
                 if (reader.Read())
                 {
@@ -94,6 +97,7 @@ namespace tl2_tp5_2024_miguell29.Repository
             {
                 SqliteCommand command = new SqliteCommand(query, connection);
                 command.Parameters.AddWithValue("@id",id);
+                connection.Open();
                 command.ExecuteNonQuery();
                 connection.Close();
             }
