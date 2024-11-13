@@ -15,7 +15,7 @@ namespace tl2_tp5_2024_miguell29.Repository
         public void AddProductToPresupuesto(int id,Producto producto, int cantidad)
         {
             string query = @"INSERT INTO PresupuestosDetalle (idPresupuesto, idProducto, Cantidad) 
-                                            VALUES (@idPresupuesto, idProducto, @cantidad)";
+                                            VALUES (@idPresupuesto, @idProducto, @cantidad)";
             using (SqliteConnection connection = new SqliteConnection(_stringConnection))
             {
                 connection.Open();
@@ -32,6 +32,7 @@ namespace tl2_tp5_2024_miguell29.Repository
 
         public void CreatePresupuesto(Presupuesto presupuesto)
         {
+            //* El id se genera automaticamente en la base de datos
             string queryPresupuesto = @"INSERT INTO Presupuestos (NombreDestinatario, FechaCreacion)
                                         VALUES (@nombre, @fecha)";
             using (SqliteConnection connection = new SqliteConnection(_stringConnection))
@@ -41,12 +42,18 @@ namespace tl2_tp5_2024_miguell29.Repository
                 command.Parameters.AddWithValue("@fecha",DateTime.Now.ToString("yyyy-MM-dd"));
                 connection.Open();
                 command.ExecuteNonQuery();
+                int idPresupuesto;
+                using (var commandId = new SqliteCommand("SELECT last_insert_rowid()", connection))//!Obtiene el ultimo idPresupesto
+                {
+                    idPresupuesto = Convert.ToInt32(commandId.ExecuteScalar());
+                }
                 connection.Close();
                 if (presupuesto.Detalle.Count() > 0)
                 {
                     foreach (var detalle in presupuesto.Detalle)
                     {
-                        AddProductToPresupuesto(presupuesto.IdPresupuesto, detalle.Producto,detalle.Cantidad);
+                        if (detalle.Producto.Id == 0) continue;
+                        AddProductToPresupuesto(idPresupuesto, detalle.Producto,detalle.Cantidad);
                     }
                 }
             }
@@ -79,7 +86,7 @@ namespace tl2_tp5_2024_miguell29.Repository
                                 PR.idProducto,
                                 PR.Descripcion AS Producto,
                                 PR.Precio,
-                                PD.Cantidad,
+                                PD.Cantidad
                             FROM 
                                 Presupuestos P
                             JOIN 
@@ -96,15 +103,17 @@ namespace tl2_tp5_2024_miguell29.Repository
                 SqliteDataReader reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    if (presupuesto.IdPresupuesto == null)
+                    if (presupuesto.IdPresupuesto == 0)
                     {
                         presupuesto.IdPresupuesto = Convert.ToInt32(reader["idPresupuesto"]);
                         presupuesto.NombreDestinatario = reader["NombreDestinatario"].ToString();
                     }
                     PresupuestoDetalle detalle = new PresupuestoDetalle();
-                    detalle.Producto.Id = Convert.ToInt32(reader["idProducto"]);
-                    detalle.Producto.Descripcion = reader["Producto"].ToString();
-                    detalle.Producto.Precio = Convert.ToInt32(reader["Precio"]);
+                    detalle.Producto = new Producto(){
+                        Id = Convert.ToInt32(reader["idProducto"]),
+                        Precio = Convert.ToInt32(reader["Precio"]),
+                        Descripcion = reader["Producto"].ToString()
+                    };
                     detalle.Cantidad = Convert.ToInt32(reader["Cantidad"]);
                     presupuesto.Detalle.Add(detalle);
                 }
@@ -119,8 +128,9 @@ namespace tl2_tp5_2024_miguell29.Repository
         public List<Presupuesto> GetPresupuestos()
         {
             List<int> idPresupuestos = new List<int>();
+            List<string> nombres = new List<string>();
             List<Presupuesto> presupuestos = new List<Presupuesto>();
-            string query = "SELECT idPresupuesto FROM Presupuestos";
+            string query = "SELECT idPresupuesto, NombreDestinatario FROM Presupuestos";
             using (SqliteConnection connection = new SqliteConnection(_stringConnection))
             {
                 SqliteCommand command = new SqliteCommand(query, connection);
@@ -128,13 +138,20 @@ namespace tl2_tp5_2024_miguell29.Repository
                 SqliteDataReader reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    idPresupuestos.Add(Convert.ToInt32(reader["idPresupuesto"]));     
+                    idPresupuestos.Add(Convert.ToInt32(reader["idPresupuesto"]));  
+                    nombres.Add(reader["NombreDestinatario"].ToString());   
                 };
                 connection.Close();
             }
             foreach (var id in idPresupuestos)
             {
-                presupuestos.Add(GetPresupuestoById(id));
+                var presupuesto = GetPresupuestoById(id);
+                if (presupuesto.IdPresupuesto == 0)
+                {
+                    presupuesto.IdPresupuesto = id;
+                    presupuesto.NombreDestinatario = nombres[id];
+                }
+                presupuestos.Add(presupuesto);
             }
             return presupuestos;
         }
